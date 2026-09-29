@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Plan — Your daily planner</title>
+  <meta name="description" content="Plan your day in one calm place: tasks, time blocks and an evening review.">
+  <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#101317" media="(prefers-color-scheme: dark)">
+  <meta property="og:title" content="Plan — Your daily planner">
+  <meta property="og:description" content="Tasks, time blocks and an evening review in one calm place.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230f7a6c'/%3E%3Cpath d='M10 16.5l4 4 8-9' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="app" id="app" data-state="loading">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 16 16"><path d="M3.5 8.4l3 3 6-6.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="brand-name">Plan</span>
+      </div>
+      <nav class="topnav" aria-hidden="true">
+        <span class="is-current">Today</span>
+        <span>Upcoming</span>
+        <span>Review</span>
+      </nav>
+      <div class="avatar" aria-hidden="true"></div>
+    </header>
+
+    <main class="stage">
+      <!-- Fake loader: real asset preloading happens behind it -->
+      <section class="loader" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="loader-title">Loading your daily planner…</p>
+        <p class="loader-sub" id="loaderStatus">Syncing calendar</p>
+        <div class="progress" aria-hidden="true"><span class="progress-bar" id="progressBar"></span></div>
+      </section>
+
+      <!-- Decoy dashboard -->
+      <section class="dashboard" aria-hidden="true">
+        <p class="date" id="today">Today</p>
+        <h1 class="greeting" id="greeting">Good morning.</h1>
+
+        <div class="grid">
+          <article class="panel">
+            <h2>Tasks</h2>
+            <ul class="tasks">
+              <li><span class="check"></span><span>Review weekly goals</span><span class="tag">Planning</span></li>
+              <li class="is-done"><span class="check"></span><span>Reply to team thread</span></li>
+              <li><span class="check"></span><span>Draft project proposal</span><span class="tag">Focus</span></li>
+              <li><span class="check"></span><span>Evening review</span></li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h2>Schedule</h2>
+            <ol class="timeline">
+              <li><time>9:00</time><span class="block">Plan the day</span></li>
+              <li><time>10:30</time><span class="block">Deep work</span></li>
+              <li><time>13:00</time><span class="block block-warm">Lunch</span></li>
+              <li><time>16:00</time><span class="block">Team sync</span></li>
+            </ol>
+          </article>
+        </div>
+      </section>
+
+      <!-- Click-anywhere gate (this is the audio-unlocking user gesture) -->
+      <div class="gate">
+        <div class="gate-card">
+          <div class="gate-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </div>
+          <p class="gate-title">Your planner is ready</p>
+          <p class="gate-text">4 tasks and 4 time blocks today</p>
+          <button class="btn" id="enterBtn" type="button">Open dashboard</button>
+          <p class="gate-hint" id="gateHint">or click anywhere to continue</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scare layer: hidden until the first gesture -->
+  <div class="scare" id="scare" aria-hidden="true">
+    <div class="scare-shaker">
+      <div class="scare-media" id="scareMedia"></div>
+    </div>
+    <div class="scare-vignette"></div>
+    <div class="scare-strobe"></div>
+    <div class="scare-flash"></div>
+  </div>
+
+  <div class="reveal" id="reveal" aria-hidden="true">
+    <p class="reveal-title" id="revealTitle">gotcha.</p>
+    <button class="reveal-btn" id="resetBtn" type="button">Reset</button>
+  </div>
+
+  <noscript><p class="noscript">Plan needs JavaScript to load your planner.</p></noscript>
+</body>
+</html>

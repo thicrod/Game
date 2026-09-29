@@ -1,0 +1,15 @@
+# Render Blueprint: deploys this folder as a Static Site (no build step).
+# Render Dashboard → New → Blueprint → select this repo → Apply.
+services:
+  - type: web
+    name: game
+    runtime: static
+    buildCommand: echo "No build step"
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin

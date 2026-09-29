@@ -1,0 +1,419 @@
+/* Plan — styles.css
+   Part 1: the decoy planner (quiet, plausible).
+   Part 2: the scare layer (transform/opacity only → compositor-driven). */
+
+:root {
+  --paper: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #15181d;
+  --muted: #6a717c;
+  --faint: #a4abb5;
+  --line: #e3e6eb;
+  --accent: #0f7a6c;
+  --accent-soft: #e2f1ee;
+  --warm: #b87a1e;
+  --warm-soft: #fbf1df;
+  --scrim: rgba(244, 246, 248, 0.6);
+  --lift: 0 1px 2px rgba(21, 24, 29, 0.05), 0 6px 20px rgba(21, 24, 29, 0.05);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* set from script.js CONFIG */
+  --scare-fit: cover;
+  --strobe-ms: 333ms;
+  --impact-ms: 600ms;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #101317;
+    --surface: #171b21;
+    --ink: #e8eaed;
+    --muted: #949ba6;
+    --faint: #5d646e;
+    --line: #262b33;
+    --accent: #3fb8a5;
+    --accent-soft: #16302d;
+    --warm: #e0a64d;
+    --warm-soft: #2e2516;
+    --scrim: rgba(16, 19, 23, 0.62);
+    --lift: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
+html { height: 100%; }
+
+body {
+  height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font: 15px/1.5 var(--font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ============================== Decoy app ============================== */
+
+.app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 650; font-size: 16px; letter-spacing: -0.01em; }
+.brand-mark {
+  width: 24px; height: 24px;
+  border-radius: 7px;
+  display: grid; place-items: center;
+  background: var(--accent);
+  color: #fff;
+}
+.brand-mark svg { width: 14px; height: 14px; }
+
+.topnav { display: flex; gap: 2px; }
+.topnav span { padding: 5px 10px; border-radius: 8px; font-size: 14px; color: var(--muted); }
+.topnav .is-current { color: var(--ink); background: var(--paper); }
+
+.avatar {
+  margin-left: auto;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #9ec9c1, #5a8fa8);
+}
+
+/* loader, dashboard and gate share one grid cell */
+.stage { position: relative; flex: 1; display: grid; }
+.stage > * { grid-area: 1 / 1; }
+
+.loader {
+  place-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px;
+  text-align: center;
+  transition: opacity 0.35s ease, visibility 0.35s;
+}
+
+.spinner {
+  width: 26px; height: 26px;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+  will-change: transform;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loader-title { margin: 0; font-weight: 600; font-size: 16px; }
+.loader-sub { margin: 0; min-height: 1.5em; font-size: 13.5px; color: var(--muted); }
+
+.progress {
+  width: 180px; height: 3px;
+  margin-top: 12px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--line);
+}
+.progress-bar {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+  transform: scaleX(0);
+  will-change: transform;
+}
+
+.dashboard {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 44px 24px 64px;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.date { margin: 0 0 2px; font-size: 14px; color: var(--muted); }
+.greeting { margin: 0 0 28px; font-size: clamp(28px, 4.2vw, 38px); line-height: 1.15; font-weight: 680; letter-spacing: -0.025em; }
+
+.grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; }
+
+.panel {
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+.panel h2 { margin: 0 0 8px; font-size: 14px; font-weight: 620; color: var(--muted); }
+
+.tasks { list-style: none; margin: 0; padding: 0; }
+.tasks li { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); }
+.tasks li:first-child { border-top: 0; }
+.check { position: relative; flex: none; width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--faint); }
+.tasks .is-done { color: var(--faint); }
+.tasks .is-done span:nth-child(2) { text-decoration: line-through; }
+.tasks .is-done .check { background: var(--accent); border-color: var(--accent); }
+.tasks .is-done .check::after {
+  content: "";
+  position: absolute; left: 5px; top: 1.5px;
+  width: 5px; height: 9px;
+  border: solid #fff; border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.tag {
+  margin-left: auto;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.timeline { list-style: none; margin: 0; padding: 4px 0 0; display: grid; gap: 8px; }
+.timeline li { display: grid; grid-template-columns: 48px 1fr; align-items: center; gap: 12px; }
+.timeline time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.block {
+  padding: 9px 12px;
+  border-radius: 9px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  font-size: 14px;
+}
+.block-warm { border-left-color: var(--warm); background: var(--warm-soft); }
+
+.gate {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--scrim);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease 0.15s, visibility 0.4s 0.15s;
+}
+.gate-card {
+  width: min(340px, 100%);
+  padding: 28px 26px 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(21, 24, 29, 0.14);
+  transform: translate3d(0, 8px, 0) scale(0.98);
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s;
+}
+.gate-icon {
+  width: 40px; height: 40px;
+  margin: 0 auto 14px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.gate-icon svg { width: 22px; height: 22px; }
+.gate-title { margin: 0 0 4px; font-size: 17px; font-weight: 640; }
+.gate-text { margin: 0 0 20px; font-size: 14px; color: var(--muted); }
+.gate-hint { margin: 12px 0 0; font-size: 12.5px; color: var(--faint); }
+
+.btn {
+  appearance: none;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+  font: 600 15px var(--font);
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: scale(0.98); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* state machine: loading → ready → scared */
+.app[data-state="ready"] .loader,
+.app[data-state="scared"] .loader { opacity: 0; visibility: hidden; }
+.app[data-state="ready"] .dashboard,
+.app[data-state="scared"] .dashboard { opacity: 1; transform: translate3d(0, 0, 0); }
+.app[data-state="ready"] .gate { opacity: 1; visibility: visible; }
+.app[data-state="ready"] .gate-card { transform: translate3d(0, 0, 0) scale(1); }
+
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; }
+  .dashboard { padding-top: 32px; }
+}
+@media (max-width: 520px) {
+  .topnav { display: none; }
+  .topbar { padding: 12px 18px; }
+}
+
+.noscript { position: fixed; inset: auto 0 24px; text-align: center; color: var(--muted); }
+
+/* ============================== Scare layer ============================== */
+
+html.is-scaring, html.is-scaring body { overflow: hidden; background: #000; }
+
+.scare {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  overflow: hidden;
+  contain: strict;
+  background: #000;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  cursor: none;
+}
+.scare.is-active { visibility: visible; opacity: 1; pointer-events: auto; }
+
+/* every animated layer gets its own GPU layer up front */
+.scare-shaker,
+.scare-media,
+.scare-strobe,
+.scare-flash {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+.scare-shaker { position: absolute; inset: -5%; }
+.scare-media  { position: absolute; inset: 0; }
+
+.scare-el {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: var(--scare-fit);
+  background: #000;
+}
+.scare-media svg { width: 100%; height: 100%; display: block; }
+
+.scare-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 42%, rgba(40, 0, 0, 0.55) 78%, rgba(0, 0, 0, 0.9) 100%);
+}
+
+.scare-strobe,
+.scare-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #fff;
+  opacity: 0;
+}
+
+/* --- the moment of impact ---
+   --impact-ms = when the creature lands. The flash hits then, the pulse starts,
+   and the strobe waits one period so no 1 s window exceeds 3 flashes. */
+.scare.is-active .scare-media {
+  animation: throb 170ms ease-in-out var(--impact-ms) infinite alternate;
+}
+.scare.is-active.with-lunge .scare-media {
+  animation:
+    lunge 420ms cubic-bezier(0.2, 0.9, 0.25, 1) both,
+    throb 170ms ease-in-out 420ms infinite alternate;
+}
+.scare.is-active .scare-shaker { animation: shake 360ms linear infinite; }
+.scare.is-active .scare-flash  { animation: flash 280ms ease-out var(--impact-ms) forwards; }
+.scare.is-active .scare-strobe {
+  animation: strobe var(--strobe-ms) steps(1, end) calc(var(--impact-ms) + var(--strobe-ms)) infinite;
+}
+
+@keyframes lunge {
+  0%   { transform: translate3d(0, 22%, 0) scale(0.28); opacity: 0; }
+  6%   { opacity: 1; }
+  55%  { transform: translate3d(0, -2%, 0) scale(1.2); }
+  100% { transform: translate3d(0, 0, 0) scale(1.06); opacity: 1; }
+}
+@keyframes throb {
+  from { transform: translate3d(0, 0, 0) scale(1.03); }
+  to   { transform: translate3d(0, -1%, 0) scale(1.09); }
+}
+@keyframes shake {
+  0%    { transform: translate3d(0, 0, 0) rotate(0deg); }
+  12.5% { transform: translate3d(-2.2%, 1.4%, 0) rotate(-1.2deg); }
+  25%   { transform: translate3d(1.8%, -2%, 0) rotate(1deg); }
+  37.5% { transform: translate3d(-1.4%, -1%, 0) rotate(0.6deg); }
+  50%   { transform: translate3d(2.4%, 1.8%, 0) rotate(-0.8deg); }
+  62.5% { transform: translate3d(-2%, 2.2%, 0) rotate(1.3deg); }
+  75%   { transform: translate3d(1.2%, -1.6%, 0) rotate(-1deg); }
+  87.5% { transform: translate3d(-1.6%, 0.8%, 0) rotate(0.4deg); }
+  100%  { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+@keyframes flash {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes strobe {
+  0%  { opacity: 0; }
+  50% { opacity: 0.5; }
+}
+
+.scare.no-shake .scare-shaker { animation: none; }
+.scare.no-strobe .scare-strobe { display: none; }
+
+/* --- wind-down --- */
+.scare.is-ending .scare-strobe { animation: none; }
+.scare.is-ending .scare-shaker { animation: none; opacity: 0; transition: opacity 0.6s ease; }
+
+/* ============================== Reveal ============================== */
+
+.reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 20px;
+  color: #eceae4;
+  font-family: var(--font);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.6s ease, visibility 0.6s;
+}
+.reveal.is-visible { opacity: 1; visibility: visible; pointer-events: auto; }
+.reveal-title { margin: 0; font-size: clamp(32px, 7vw, 64px); font-weight: 700; letter-spacing: -0.03em; }
+.reveal-btn {
+  appearance: none;
+  padding: 9px 18px;
+  border: 1px solid rgba(236, 234, 228, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: 500 14px var(--font);
+  cursor: pointer;
+}
+.reveal-btn:hover { border-color: rgba(236, 234, 228, 0.7); }
+.reveal-btn:focus-visible { outline: 2px solid #eceae4; outline-offset: 3px; }
